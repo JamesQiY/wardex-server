@@ -27,8 +27,7 @@ app.get('/All', async (req, res) => {
       spreadsheetId: spreadsheetId,
       range: "sorted",
     }).then(() => {console.log('Retrieved: all');
-       res.json(retrieved.data.values)}
-    , console.log('Retrieved Failed: all'))
+       res.json(retrieved.data.values)})
 
   } catch (err){
     res.status(502).json({error: err});
