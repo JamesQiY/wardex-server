@@ -5,7 +5,7 @@ const { google } = require('googleapis');
 require('dotenv').config();
 
 let app = express();
-app.use(cors({origin: '*'}));
+app.use(cors({ origin: '*' }));
 
 // var options = {
 //   key: fs.readFileSync('perm/client-key.pem'),
@@ -22,15 +22,14 @@ const spreadsheetId = process.env.SHEETID;
 
 app.get('/All', async (req, res) => {
   try {
-    const retrieved  = await sheets.spreadsheets.values.get({
+    const retrieved = await sheets.spreadsheets.values.get({
       auth: auth,
       spreadsheetId: spreadsheetId,
       range: "sorted",
-    }).then(() => {console.log('Retrieved: all');
-       res.json(retrieved.data.values)})
-
-  } catch (err){
-    res.status(502).json({error: err});
+    }).then(() => { console.log('Retrieved: all') })
+    res.json(retrieved.data.values)
+  } catch (err) {
+    res.status(502).json({ error: err });
   }
 })
 
@@ -45,7 +44,7 @@ app.get('/player/:name', async (req, res) => {
     let con_msg = "";
     let totaldata = retrieved.data.values;
     const playerIndex = findPlayer(totaldata, name);
-  
+
     if (playerIndex < 0) {
       res.status(404).json({ error: 'Not Found' });;
       con_msg = "Retrieved failed: " + name;
@@ -54,8 +53,8 @@ app.get('/player/:name', async (req, res) => {
       con_msg = "Retrieved: " + name;
     }
     console.log(con_msg);
-  } catch (err){
-    res.status(502).json({error: err});
+  } catch (err) {
+    res.status(502).json({ error: err });
   }
 })
 
@@ -80,6 +79,6 @@ function findPlayer(a, name) {
   return -1;
 }
 
-app.listen(port,(req, res) => {
+app.listen(port, (req, res) => {
   console.log('App online')
 });
