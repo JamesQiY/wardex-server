@@ -17,7 +17,7 @@ const auth = process.env.APIKEY;
 const sheets = google.sheets({ version: "v4", auth: auth })
 
 // globals 
-const port = 9000;
+const port = process.env.PORT || 9000;
 const spreadsheetId = process.env.SHEETID;
 
 app.get('/All', async (req, res) => {
