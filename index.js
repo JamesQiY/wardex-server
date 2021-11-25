@@ -7,11 +7,6 @@ require('dotenv').config();
 let app = express();
 app.use(cors({ origin: '*' }));
 
-// var options = {
-//   key: fs.readFileSync('perm/client-key.pem'),
-//   cert: fs.readFileSync('perm/client.csr')
-// };
-
 // google 
 const auth = process.env.APIKEY;
 const sheets = google.sheets({ version: "v4", auth: auth })
@@ -20,14 +15,37 @@ const sheets = google.sheets({ version: "v4", auth: auth })
 const port = process.env.PORT || 9000;
 const spreadsheetId = process.env.SHEETID;
 
-app.get('/All', async (req, res) => {
+// returns a list of players as objects
+function processAll(data=[]) {
+
+  let output = [];
+  let mapping = data.shift();
+  for (let i = 0; i < data.length; i++){
+    let playerArr = data[i];
+    let playerObj = processSingle(playerArr, mapping);
+    output.push(playerObj)
+  }
+  return output;
+}
+
+// returns a player as an object
+function processSingle(data=[], mapping=[]){
+  let playerObj = {};
+  for (let i = 0; i < mapping.length; i++) {
+    playerObj[mapping[i].toLowerCase()] = data[i];
+  }
+  return playerObj;
+}
+
+app.get('/all', async (req, res) => {
   try {
     const retrieved = await sheets.spreadsheets.values.get({
       auth: auth,
       spreadsheetId: spreadsheetId,
-      range: "sorted",
+      range: "sorted2",
     })
-    res.json(retrieved.data.values)
+    let reponseObj = processAll(retrieved.data.values);
+    res.json(reponseObj);
   } catch (err) {
     res.status(502).json({ error: err });
   }
@@ -38,18 +56,19 @@ app.get('/player/:name', async (req, res) => {
     var retrieved = await sheets.spreadsheets.values.get({
       auth: auth,
       spreadsheetId: spreadsheetId,
-      range: "sorted",
+      range: "sorted2",
     })
     let name = req.params.name;
     let con_msg = "";
     let totaldata = retrieved.data.values;
+    let mapping = totaldata.shift();
     const playerIndex = findPlayer(totaldata, name);
 
     if (playerIndex < 0) {
       res.status(404).json({ error: 'Not Found' });;
       con_msg = "Retrieved failed: " + name;
     } else {
-      res.json(totaldata[playerIndex]);
+      res.json(processSingle(totaldata[playerIndex],mapping));
       con_msg = "Retrieved: " + name;
     }
     console.log(con_msg);
@@ -60,7 +79,6 @@ app.get('/player/:name', async (req, res) => {
 
 function findPlayer(a, name) {
   //https://stackoverflow.com/questions/2167602/optimum-way-to-compare-strings-in-javascript
-  a.shift();
   name = name.toLowerCase();
 
   let low = 0;
